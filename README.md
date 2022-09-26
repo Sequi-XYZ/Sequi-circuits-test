@@ -9,15 +9,16 @@ By default, the project works with the Aztec Testnet.
 It allows a user to interact with the Aztec Testnet using Metamask and the Aztec SDK. It includes buttons to:
 
 - Connect to Metamask
-- login (sign a message to create your Aztec privacy key from your Metamask account)
-- log the current SDK object
+- Login (derive your Aztec view key by message signing)
+- Log the SDK
 - Initialize the users Aztec accounts and log the balances
   - Account with nonce 0 is the privacy account and is not typically used to deposit or transfer funds. It is used for registering account with nonce 1 and decrypting notes.
   - Account with nonce 1 is the spending account. The signing key associated with this account is used to spend notes. It must be registered with account 0 before it can be used.
 - Create the singer for account with nonce 1
-- Deposit Eth to account 1 from the connected Metamask account.
+- Register an Aztec account
+- Deposit ETH to account 1 from the connected Metamask account.
 
-For more details on available functions, check `../src`.
+For more details on available functions, check `./src`.
 
 ## Prerequisites
 
