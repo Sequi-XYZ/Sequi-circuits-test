@@ -14,6 +14,7 @@ import {
   SchnorrSigner,
   EthAddress,
   TxSettlementTime,
+  JsonRpcProvider,
 } from "@aztec/sdk";
 
 import { randomBytes } from "crypto";
@@ -26,12 +27,11 @@ import {
 declare var window: any
 
 const App = () => {
+  const [hasMetamask, setHasMetamask] = useState(false);
+  const [ethereumProvider, setEthereumProvider] =
+    useState<EthereumProvider>(new JsonRpcProvider("https://mainnet-fork.aztec.network")); // Testnet by default
   const [isConnected, setIsConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [hasMetamask, setHasMetamask] = useState(false);
-  const [signer, setSigner] = useState<null | JsonRpcSigner>(null);
-  const [ethereumProvider, setEthereumProvider] =
-    useState<null | EthereumProvider>(null);
   const [ethAccount, setEthAccount] = useState<EthAddress | null>(null);
   const [sdk, setSdk] = useState<null | AztecSdk>(null);
   const [account0, setAccount0] = useState<AztecSdkUser | null>(null);
@@ -42,52 +42,45 @@ const App = () => {
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState(0);
 
+  // Connect Metamask
   useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
+    const { ethereum } = window;
+    if (ethereum) {
       setHasMetamask(true);
-    }
-    window.ethereum.on("accountsChanged", () => window.location.reload());
-  });
 
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const ethereumProvider: EthereumProvider = new EthersAdapter(provider);
+      setEthereumProvider(ethereumProvider);
+
+      (async () => {
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        setEthAccount(EthAddress.fromString(await signer.getAddress()));
+      })();
+    }
+    // TODO: Error if Metamask is not on Aztec Testnet
+
+    window.ethereum.on("accountsChanged", () => window.location.reload());
+  }, [])
+
+  // Initialize SDK
   async function connect() {
     setConnecting(true);
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        let accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        setEthAccount(EthAddress.fromString(accounts[0]));
 
-        const ethersProvider: Web3Provider = new ethers.providers.Web3Provider(
-          window.ethereum
-        );
+    const sdk = await createAztecSdk(ethereumProvider, {
+      serverUrl: "https://api.aztec.network/aztec-connect-testnet/falafel", // Testnet
+      pollInterval: 1000,
+      memoryDb: true,
+      debug: "bb:*",
+      flavour: SdkFlavour.PLAIN,
+      minConfirmation: 1, // ETH block confirmations
+    });
 
-        const ethereumProvider: EthereumProvider = new EthersAdapter(
-          ethersProvider
-        );
+    await sdk.run();
 
-        const sdk = await createAztecSdk(ethereumProvider, {
-          serverUrl: "https://api.aztec.network/aztec-connect-testnet/falafel", // testnet
-          pollInterval: 1000,
-          memoryDb: true,
-          debug: "bb:*",
-          flavour: SdkFlavour.PLAIN,
-          minConfirmation: 1, // ETH block confirmations
-        });
-
-        await sdk.run();
-
-        console.log("Aztec SDK initialized", sdk);
-        setIsConnected(true);
-        setSigner(ethersProvider.getSigner());
-        setEthereumProvider(ethereumProvider);
-        setSdk(sdk);
-      } catch (e) {
-        console.log(e);
-      }
-    } else {
-      setIsConnected(false);
-    };
+    console.log("Aztec SDK initialized", sdk);
+    setIsConnected(true);
+    setSdk(sdk);
     setConnecting(false);
   }
 
