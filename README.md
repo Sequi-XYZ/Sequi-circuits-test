@@ -1,6 +1,28 @@
-# Getting Started with Create React App
+# Aztec Frontend Boilerplate
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is an Aztec sample project powered by [Aztec SDK](https://github.com/AztecProtocol/aztec-connect/tree/master/sdk) and bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+By default, the project works with the Aztec Testnet.
+
+## Functions
+
+It allows a user to interact with the Aztec Testnet using Metamask and the Aztec SDK. It includes buttons to:
+
+- Connect to Metamask
+- login (sign a message to create your Aztec privacy key from your Metamask account)
+- log the current SDK object
+- Initialize the users Aztec accounts and log the balances
+  - Account with nonce 0 is the privacy account and is not typically used to deposit or transfer funds. It is used for registering account with nonce 1 and decrypting notes.
+  - Account with nonce 1 is the spending account. The signing key associated with this account is used to spend notes. It must be registered with account 0 before it can be used.
+- Create the singer for account with nonce 1
+- Deposit Eth to account 1 from the connected Metamask account.
+
+For more details on available functions, check `../src`.
+
+## Prerequisites
+
+- Install [Node.js](https://nodejs.org/en/download/)
+- Install [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/)
 
 ## Available Scripts
 
@@ -41,6 +63,6 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 ## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+You can learn more about the Aztec SDK on the [Aztec Docs](https://docs.aztec.network/category/sdk).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
