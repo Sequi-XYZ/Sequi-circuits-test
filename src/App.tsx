@@ -22,6 +22,7 @@ import { randomBytes } from "crypto";
 import {
   depositEthToAztec,
   registerAccount,
+  aztecConnect,
 } from "./utils";
 
 declare var window: any
@@ -160,6 +161,34 @@ const App = () => {
     // TODO: Catch error when depositing 0 ETH.
   }
 
+  async function bridgeCrvLido() {
+    const fromAmount: bigint = ethers.utils
+      .parseEther(amount.toString())
+      .toBigInt();
+    // TODO: Catch error when fromAmount > user's available amount.
+
+    if (account0 && spendingSigner && sdk) {
+      let txId = await aztecConnect(
+        account0,
+        spendingSigner,
+        "0xe09801dA4C74e62fB42DFC8303a1C1BD68073D1a", // CurveStEthBridge
+        fromAmount,
+        "ETH",
+        "WSTETH",
+        undefined,
+        undefined,
+        1, // Min acceptable amount of stETH per 1 ETH
+        TxSettlementTime.NEXT_ROLLUP,
+        sdk
+      )
+      console.log("Bridge TXID: ", txId);
+      console.log(
+        "Lookup TX on Explorer: ",
+        `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
+      );
+    }
+  }
+
   return (
     <div className="App">
       {hasMetamask ? (
@@ -222,7 +251,10 @@ const App = () => {
               ""
             )}
             {spendingSigner && account0 ? (
-              <button onClick={() => depositEth()}>Deposit ETH</button>
+              <div>
+                <button onClick={() => depositEth()}>Deposit ETH</button>
+                <button onClick={() => bridgeCrvLido()}>Swap ETH to wstETH</button>
+              </div>
             ) : (
               ""
             )}

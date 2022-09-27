@@ -136,7 +136,7 @@ export async function registerAccount(
   return txId;
 }
 
-export async function bridgeDefi(
+export async function aztecConnect(
   user: AztecSdkUser,
   userSigner: Signer,
   bridgeAddress: string,
