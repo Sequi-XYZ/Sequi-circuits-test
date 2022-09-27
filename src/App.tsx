@@ -171,13 +171,13 @@ const App = () => {
       let txId = await aztecConnect(
         account0,
         spendingSigner,
-        "0xe09801dA4C74e62fB42DFC8303a1C1BD68073D1a", // CurveStEthBridge
+        "0x7E5A38e50F3f03045B7a900460C0579b57cc457A", // Testnet CurveStEthBridge
         fromAmount,
         "ETH",
         "WSTETH",
         undefined,
         undefined,
-        1, // Min acceptable amount of stETH per 1 ETH
+        1e18, // Min acceptable amount of stETH per ETH
         TxSettlementTime.NEXT_ROLLUP,
         sdk
       )
