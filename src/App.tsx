@@ -166,11 +166,16 @@ const App = () => {
         sdk ? (
           <div>
             {accountPrivateKey ? (
-              <button onClick={() => initUsersAndPrintBalances()}>
-                Init User / Log Balance
-              </button>
+              <button onClick={() => initUsersAndPrintBalances()}>Init User / Log Balance</button>
             ) : (
               <button onClick={() => login()}>Login</button>
+            )}
+            {userExists ? (
+              "Welcome back!"
+              // TODO: Greet user by alias.
+              // TODO: Display available balance.
+            ) : (
+              ""
             )}
             {spendingSigner && !userExists ? (
               <form>
@@ -187,9 +192,7 @@ const App = () => {
               ""
             )}
             {!spendingSigner && account0 ? (
-              <button onClick={() => getSpendingKey()}>
-                Create Spending Key (Signer)
-              </button>
+              <button onClick={() => getSpendingKey()}>Generate Spending Key</button>
             ) : (
               ""
             )}
@@ -197,11 +200,10 @@ const App = () => {
               <div>
                 <form>
                   <label>
-                    Deposit Amount:
                     <input
                       type="number"
                       step="0.000000000000000001"
-                      min="0.01"
+                      min="0.000000000000000001"
                       value={amount}
                       onChange={(e) => setAmount(e.target.valueAsNumber)}
                     />
@@ -213,9 +215,7 @@ const App = () => {
                     Register Alias + Deposit ≥0.1 ETH
                   </button>
                 ) : (
-                  "Welcome back!"
-                  // TODO: Greet with user's alias.
-                  // TODO: Reposition to top.
+                  ""
                 )}
               </div>
             ) : (
@@ -232,7 +232,7 @@ const App = () => {
           <button onClick={() => connect()}>Connect Metamask</button>
         )
       ) : (
-        // TODO: Fix this not rendered. Reason unknown.
+        // TODO: Fix rendering of this. Not rendered, reason unknown.
         "Metamask is not detected. Please make sure it is installed and enabled."
       )}
       {initing ? "Initializing Aztec SDK..." : ""}
