@@ -1,9 +1,7 @@
 import "./App.css";
 import { ethers } from "ethers";
-import { JsonRpcSigner, Web3Provider } from "@ethersproject/providers";
 import { useEffect, useState } from "react";
 import {
-  AccountId,
   AztecSdk,
   createAztecSdk,
   EthersAdapter,
@@ -14,7 +12,6 @@ import {
   SchnorrSigner,
   EthAddress,
   TxSettlementTime,
-  JsonRpcProvider,
 } from "@aztec/sdk";
 
 import { randomBytes } from "crypto";
@@ -44,7 +41,7 @@ const App = () => {
   useEffect(() => {
     if (window.ethereum) { setHasMetamask(true); }
     window.ethereum.on("accountsChanged", () => window.location.reload());
-  });
+  }, []);
 
   async function connect() {
     if (window.ethereum) {

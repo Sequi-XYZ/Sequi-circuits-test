@@ -1,23 +1,16 @@
 import {
-  AccountId,
   AssetValue,
   AztecSdk,
   EthAddress,
   EthereumProvider,
   GrumpkinAddress,
-  SchnorrSigner,
   TxSettlementTime,
   TxId,
-  WalletProvider,
   Web3Signer,
-  RegisterController,
-  DepositController,
-  DefiController,
   BridgeCallData,
   Signer,
   AztecSdkUser,
 } from "@aztec/sdk";
-import { Web3Provider } from "@ethersproject/providers";
 
 const privateKeyMessage = Buffer.from(
   `Sign this message to generate your Aztec Privacy Key. This key lets the application decrypt your balance on Aztec.\n\nIMPORTANT: Only sign this message if you trust the application.`
