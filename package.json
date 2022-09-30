@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aztec/bridge-clients": "^0.1.62",
     "@aztec/sdk": "^2.1.44",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",

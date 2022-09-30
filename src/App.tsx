@@ -16,13 +16,10 @@ import {
 
 import { randomBytes } from "crypto";
 
-import {
-  depositEthToAztec,
-  registerAccount,
-  aztecConnect,
-} from "./utils";
+import { depositEthToAztec, registerAccount, aztecConnect } from "./utils";
+import { useBridgeData } from "./bridge-data";
 
-declare var window: any
+declare var window: any;
 
 const App = () => {
   const [hasMetamask, setHasMetamask] = useState(false);
@@ -31,15 +28,28 @@ const App = () => {
   const [sdk, setSdk] = useState<null | AztecSdk>(null);
   const [account0, setAccount0] = useState<AztecSdkUser | null>(null);
   const [userExists, setUserExists] = useState<boolean>(false);
-  const [accountPrivateKey, setAccountPrivateKey] = useState<Buffer | null>(null);
-  const [accountPublicKey, setAccountPublicKey] = useState<GrumpkinAddress | null>(null);
-  const [spendingSigner, setSpendingSigner] = useState<SchnorrSigner | undefined>(undefined);
+  const [accountPrivateKey, setAccountPrivateKey] = useState<Buffer | null>(
+    null
+  );
+  const [accountPublicKey, setAccountPublicKey] =
+    useState<GrumpkinAddress | null>(null);
+  const [spendingSigner, setSpendingSigner] = useState<
+    SchnorrSigner | undefined
+  >(undefined);
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState(0);
 
+  const bridges = useBridgeData();
+  useEffect(() => {
+    if (bridges) console.log("Known bridges:", bridges);
+    else console.log("Loading bridge data..");
+  }, [bridges]);
+
   // Metamask Check
   useEffect(() => {
-    if (window.ethereum) { setHasMetamask(true); }
+    if (window.ethereum) {
+      setHasMetamask(true);
+    }
     window.ethereum.on("accountsChanged", () => window.location.reload());
   }, []);
 
@@ -72,7 +82,9 @@ const App = () => {
       setIniting(false);
 
       // Generate user's account keypair
-      const { publicKey, privateKey } = await sdk.generateAccountKeyPair(address)
+      const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
+        address
+      );
       console.log("privacy key", privateKey);
       console.log("public key", publicKey.toString());
       setAccountPrivateKey(privateKey);
@@ -83,8 +95,7 @@ const App = () => {
         ? await sdk.getUser(publicKey)
         : await sdk.addUser(privateKey);
       setAccount0(account0);
-      if ((await sdk.isAccountRegistered(publicKey)))
-        setUserExists(true);
+      if (await sdk.isAccountRegistered(publicKey)) setUserExists(true);
     }
   }
 
@@ -143,7 +154,7 @@ const App = () => {
       accountPublicKey!,
       depositTokenQuantity,
       TxSettlementTime.NEXT_ROLLUP,
-      sdk!,
+      sdk!
     );
 
     console.log("deposit txId", txId);
@@ -174,7 +185,7 @@ const App = () => {
         1e18, // Min acceptable amount of stETH per ETH
         TxSettlementTime.NEXT_ROLLUP,
         sdk
-      )
+      );
       console.log("Bridge TXID: ", txId);
       console.log(
         "Lookup TX on Explorer: ",
@@ -188,13 +199,11 @@ const App = () => {
       {hasMetamask ? (
         sdk ? (
           <div>
-            {userExists ? (
-              "Welcome back!"
-              // TODO: Greet user by alias.
-              // TODO: Display available balance.
-            ) : (
-              ""
-            )}
+            {userExists
+              ? "Welcome back!"
+              : // TODO: Greet user by alias.
+                // TODO: Display available balance.
+                ""}
             {spendingSigner && !userExists ? (
               <form>
                 <label>
@@ -210,7 +219,9 @@ const App = () => {
               ""
             )}
             {!spendingSigner && account0 ? (
-              <button onClick={() => getSpendingKey()}>Generate Spending Key</button>
+              <button onClick={() => getSpendingKey()}>
+                Generate Spending Key
+              </button>
             ) : (
               ""
             )}
@@ -242,7 +253,9 @@ const App = () => {
             {spendingSigner && account0 ? (
               <div>
                 <button onClick={() => depositEth()}>Deposit ETH</button>
-                <button onClick={() => bridgeCrvLido()}>Swap ETH to wstETH</button>
+                <button onClick={() => bridgeCrvLido()}>
+                  Swap ETH to wstETH
+                </button>
               </div>
             ) : (
               ""
