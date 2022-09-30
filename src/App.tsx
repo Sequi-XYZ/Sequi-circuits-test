@@ -1,9 +1,7 @@
 import "./App.css";
 import { ethers } from "ethers";
-import { JsonRpcSigner, Web3Provider } from "@ethersproject/providers";
 import { useEffect, useState } from "react";
 import {
-  AccountId,
   AztecSdk,
   createAztecSdk,
   EthersAdapter,
@@ -14,7 +12,6 @@ import {
   SchnorrSigner,
   EthAddress,
   TxSettlementTime,
-  JsonRpcProvider,
 } from "@aztec/sdk";
 
 import { randomBytes } from "crypto";
@@ -44,7 +41,7 @@ const App = () => {
   useEffect(() => {
     if (window.ethereum) { setHasMetamask(true); }
     window.ethereum.on("accountsChanged", () => window.location.reload());
-  });
+  }, []);
 
   async function connect() {
     if (window.ethereum) {
@@ -56,7 +53,8 @@ const App = () => {
       // Get Metamask ethAccount
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-      setEthAccount(EthAddress.fromString(await signer.getAddress()));
+      const address = EthAddress.fromString(await signer.getAddress());
+      setEthAccount(address);
 
       // Initialize SDK
       setIniting(true);
@@ -72,35 +70,31 @@ const App = () => {
       console.log("Aztec SDK initialized:", sdk);
       setSdk(sdk);
       setIniting(false);
+
+      // Generate user's account keypair
+      const { publicKey, privateKey } = await sdk.generateAccountKeyPair(address)
+      console.log("privacy key", privateKey);
+      console.log("public key", publicKey.toString());
+      setAccountPrivateKey(privateKey);
+      setAccountPublicKey(publicKey);
+
+      // Get or generate user's Aztec account
+      let account0 = (await sdk.userExists(publicKey))
+        ? await sdk.getUser(publicKey)
+        : await sdk.addUser(privateKey);
+      setAccount0(account0);
+      if ((await sdk.isAccountRegistered(publicKey)))
+        setUserExists(true);
     }
   }
 
-  async function login() {
-    const { publicKey: pubkey, privateKey } = await sdk!.generateAccountKeyPair(ethAccount!)
-    console.log("privacy key", privateKey);
-    console.log("public key", pubkey.toString());
-
-    setAccountPrivateKey(privateKey);
-    setAccountPublicKey(pubkey);
-  }
-
-  async function initUsersAndPrintBalances() {
-
-    let account0 = (await sdk!.userExists(accountPublicKey!))
-      ? await sdk!.getUser(accountPublicKey!)
-      : await sdk!.addUser(accountPrivateKey!);
-
-    setAccount0(account0!);
-
-    if ((await sdk?.isAccountRegistered(accountPublicKey!)))
-      setUserExists(true);
-
-    await account0.awaitSynchronised();
+  async function logBalance() {
     // Wait for the SDK to read & decrypt notes to get the latest balances
+    await account0!.awaitSynchronised();
     console.log(
       "zkETH balance",
       sdk!.fromBaseUnits(
-        await sdk!.getBalance(account0.id, sdk!.getAssetIdBySymbol("ETH"))
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("ETH"))
       )
     );
   }
@@ -194,11 +188,6 @@ const App = () => {
       {hasMetamask ? (
         sdk ? (
           <div>
-            {accountPrivateKey ? (
-              <button onClick={() => initUsersAndPrintBalances()}>Init User / Log Balance</button>
-            ) : (
-              <button onClick={() => login()}>Login</button>
-            )}
             {userExists ? (
               "Welcome back!"
               // TODO: Greet user by alias.
@@ -255,6 +244,11 @@ const App = () => {
                 <button onClick={() => depositEth()}>Deposit ETH</button>
                 <button onClick={() => bridgeCrvLido()}>Swap ETH to wstETH</button>
               </div>
+            ) : (
+              ""
+            )}
+            {accountPrivateKey ? (
+              <button onClick={() => logBalance()}>Log Balance</button>
             ) : (
               ""
             )}
