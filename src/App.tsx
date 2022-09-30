@@ -191,11 +191,6 @@ const App = () => {
       {hasMetamask ? (
         sdk ? (
           <div>
-            {accountPrivateKey ? (
-              <button onClick={() => logBalance()}>Log Balance</button>
-            ) : (
-              ""
-            )}
             {userExists ? (
               "Welcome back!"
               // TODO: Greet user by alias.
@@ -252,6 +247,11 @@ const App = () => {
                 <button onClick={() => depositEth()}>Deposit ETH</button>
                 <button onClick={() => bridgeCrvLido()}>Swap ETH to wstETH</button>
               </div>
+            ) : (
+              ""
+            )}
+            {accountPrivateKey ? (
+              <button onClick={() => logBalance()}>Log Balance</button>
             ) : (
               ""
             )}
