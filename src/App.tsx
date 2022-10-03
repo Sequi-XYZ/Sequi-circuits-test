@@ -116,64 +116,67 @@ const App = () => {
   }
 
   async function registerNewAccount() {
-    const depositTokenQuantity: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
-    const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
-    let recoverPublicKey = recoverySigner.getPublicKey();
-    let txId = await registerAccount(
-      accountPublicKey!,
-      alias,
-      accountPrivateKey!,
-      spendingSigner!.getPublicKey(),
-      recoverPublicKey,
-      EthAddress.ZERO,
-      depositTokenQuantity,
-      TxSettlementTime.NEXT_ROLLUP,
-      ethAccount!,
-      sdk!
-    );
-    console.log("registration txId", txId);
-    console.log(
-      "lookup tx on explorer",
-      `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
-    );
-
-    // TODO: Reject when deposit amount is <0.01ETH?
+    try {
+      const depositTokenQuantity: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
+      const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
+      let recoverPublicKey = recoverySigner.getPublicKey();
+      let txId = await registerAccount(
+        accountPublicKey!,
+        alias,
+        accountPrivateKey!,
+        spendingSigner!.getPublicKey(),
+        recoverPublicKey,
+        EthAddress.ZERO,
+        depositTokenQuantity,
+        TxSettlementTime.NEXT_ROLLUP,
+        ethAccount!,
+        sdk!
+      );
+      console.log("registration txId", txId);
+      console.log(
+        "lookup tx on explorer",
+        `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
+      );
+    } catch (e) {
+      console.log(e); // e.g. Reject TX
+    }
   }
 
   async function depositEth() {
-    const depositTokenQuantity: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
+    try {
+      const depositTokenQuantity: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
 
-    let txId = await depositEthToAztec(
-      ethAccount!,
-      accountPublicKey!,
-      depositTokenQuantity,
-      TxSettlementTime.NEXT_ROLLUP,
-      sdk!
-    );
+      let txId = await depositEthToAztec(
+        ethAccount!,
+        accountPublicKey!,
+        depositTokenQuantity,
+        TxSettlementTime.NEXT_ROLLUP,
+        sdk!
+      );
 
-    console.log("deposit txId", txId);
-    console.log(
-      "lookup tx on explorer",
-      `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
-    );
-
-    // TODO: Catch error when depositing 0 ETH.
+      console.log("deposit txId", txId);
+      console.log(
+        "lookup tx on explorer",
+        `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
+      );
+    } catch (e) {
+      console.log(e); // e.g. depositTokenQuantity = 0
+    }
   }
 
   async function bridgeCrvLido() {
-    const fromAmount: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
-    // TODO: Catch error when fromAmount > user's available amount.
+    try {
+      const fromAmount: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
 
-    if (account0 && spendingSigner && sdk) {
       let txId = await aztecConnect(
-        account0,
-        spendingSigner,
+        account0!,
+        spendingSigner!,
         6, // Testnet bridge id of CurveStEthBridge
         fromAmount,
         "ETH",
@@ -182,13 +185,15 @@ const App = () => {
         undefined,
         1e18, // Min acceptable amount of stETH per ETH
         TxSettlementTime.NEXT_ROLLUP,
-        sdk
+        sdk!
       );
       console.log("Bridge TXID: ", txId);
       console.log(
         "Lookup TX on Explorer: ",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
+    } catch (e) {
+      console.log(e); // e.g. fromAmount > user's balance
     }
   }
 
