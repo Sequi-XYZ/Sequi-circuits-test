@@ -71,15 +71,15 @@ const App = () => {
         minConfirmation: 1, // ETH block confirmations
       });
       await sdk.run();
-      console.log("Aztec SDK initialized: ", sdk);
+      console.log("Aztec SDK initialized:", sdk);
       setSdk(sdk);
 
       // Generate user's account keypair
       const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
         address
       );
-      console.log("Privacy Key: ", privateKey);
-      console.log("Public Key: ", publicKey.toString());
+      console.log("Privacy Key:", privateKey);
+      console.log("Public Key:", publicKey.toString());
       setAccountPrivateKey(privateKey);
       setAccountPublicKey(publicKey);
 
@@ -112,7 +112,7 @@ const App = () => {
   async function getSpendingKey() {
     const { privateKey } = await sdk!.generateSpendingKeyPair(ethAccount!);
     const signer = await sdk?.createSchnorrSigner(privateKey);
-    console.log("Signer: ", signer);
+    console.log("Signer:", signer);
     setSpendingSigner(signer);
   }
 
@@ -135,9 +135,9 @@ const App = () => {
         ethAccount!,
         sdk!
       );
-      console.log("Registration TXID: ", txId);
+      console.log("Registration TXID:", txId);
       console.log(
-        "View TX on Explorer: ",
+        "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
@@ -159,9 +159,9 @@ const App = () => {
         sdk!
       );
 
-      console.log("Deposit TXID: ", txId);
+      console.log("Deposit TXID:", txId);
       console.log(
-        "View TX on Explorer: ",
+        "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
@@ -188,9 +188,9 @@ const App = () => {
         TxSettlementTime.NEXT_ROLLUP,
         sdk!
       );
-      console.log("Bridge TXID: ", txId);
+      console.log("Bridge TXID:", txId);
       console.log(
-        "View TX on Explorer: ",
+        "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
@@ -209,7 +209,7 @@ const App = () => {
         sdk ? (
           <div>
             {userExists
-              ? "Welcome back!"
+              ? "Welcome back! "
               : // TODO: Greet user by alias.
               // TODO: Display available balance.
               ""}
@@ -284,7 +284,7 @@ const App = () => {
         // TODO: Fix rendering of this. Not rendered, reason unknown.
         "Metamask is not detected. Please make sure it is installed and enabled."
       )}
-      {initing ? "Initializing..." : ""}
+      {initing ? " Initializing..." : ""}
     </div>
   );
 };
