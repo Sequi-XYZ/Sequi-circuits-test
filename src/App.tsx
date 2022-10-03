@@ -1,5 +1,4 @@
 import "./App.css";
-import { randomBytes } from "crypto";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import {
@@ -120,16 +119,13 @@ const App = () => {
       const depositTokenQuantity: bigint = ethers.utils
         .parseEther(amount.toString())
         .toBigInt();
-      const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
-      let recoverPublicKey = recoverySigner.getPublicKey();
 
-      let txId = await registerAccount(
+      const txId = await registerAccount(
         accountPublicKey!,
         alias,
         accountPrivateKey!,
         spendingSigner!.getPublicKey(),
-        recoverPublicKey,
-        EthAddress.ZERO,
+        "eth",
         depositTokenQuantity,
         TxSettlementTime.NEXT_ROLLUP,
         ethAccount!,
@@ -244,7 +240,7 @@ const App = () => {
                 </form>
                 {!userExists ? (
                   <button onClick={() => registerNewAccount()}>
-                    Register Alias + Deposit ≥0.1 ETH
+                    Register Aztec Account
                   </button>
                 ) : (
                   ""

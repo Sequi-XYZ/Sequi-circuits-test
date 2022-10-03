@@ -97,27 +97,26 @@ export async function registerAccount(
   alias: string,
   accountPrivateKey: Buffer,
   newSigner: GrumpkinAddress,
-  recoveryPublicKey: GrumpkinAddress,
-  tokenAddress: EthAddress,
-  tokenQuantity: bigint,
+  assetSymbol: string,
+  assetAmount: bigint,
   settlementTime: TxSettlementTime,
   depositor: EthAddress,
   sdk: AztecSdk
 ): Promise<TxId> {
-  const assetId = sdk.getAssetIdByAddress(tokenAddress);
-  const deposit = { assetId, value: tokenQuantity };
+  const assetId = sdk.getAssetIdBySymbol(assetSymbol);
+  const deposit = { assetId, value: assetAmount };
   const txFee = (await sdk.getRegisterFees(assetId))[settlementTime];
 
-  const controller = await sdk.createRegisterController(
+  const controller = sdk.createRegisterController(
     userId,
     alias,
     accountPrivateKey,
     newSigner,
-    recoveryPublicKey,
-    deposit,
+    undefined, // Optional recovery key
+    deposit, // Optional, can be of zero value
     txFee,
-    depositor
-    // optional feePayer requires an Aztec Signer to pay the fee
+    depositor,
+    // Optional Ethereum Provider
   );
 
   await controller.depositFundsToContract();
@@ -143,17 +142,17 @@ export async function aztecConnect(
   sdk: AztecSdk
 ): Promise<TxId> {
   // Initiate bridge call data parameters
-  const inputAssetIdA = sdk.getAssetIdBySymbol(inputAssetASymbol.toUpperCase());
-  const outputAssetIdA = sdk.getAssetIdBySymbol(outputAssetASymbol.toUpperCase());
+  const inputAssetIdA = sdk.getAssetIdBySymbol(inputAssetASymbol);
+  const outputAssetIdA = sdk.getAssetIdBySymbol(outputAssetASymbol);
   let inputAssetIdB: number | undefined;
   let outputAssetIdB: number | undefined;
   if (inputAssetBSymbol !== undefined) {
-    inputAssetIdB = sdk.getAssetIdBySymbol(inputAssetBSymbol.toUpperCase());
+    inputAssetIdB = sdk.getAssetIdBySymbol(inputAssetBSymbol);
   } else {
     inputAssetIdB = inputAssetBSymbol;
   }
   if (outputAssetBSymbol !== undefined) {
-    outputAssetIdB = sdk.getAssetIdBySymbol(outputAssetBSymbol.toUpperCase());
+    outputAssetIdB = sdk.getAssetIdBySymbol(outputAssetBSymbol);
   } else {
     outputAssetIdB = outputAssetBSymbol;
   }
