@@ -83,7 +83,7 @@ export async function depositEthToAztec(
   );
   await tokenDepositController.createProof();
   await tokenDepositController.sign();
-  console.log((await tokenDepositController.getPendingFunds()))
+  await tokenDepositController.getPendingFunds();
   if ((await tokenDepositController.getPendingFunds()) < tokenQuantity) {
     await tokenDepositController.depositFundsToContract();
     await tokenDepositController.awaitDepositFundsToContract();
@@ -132,7 +132,7 @@ export async function registerAccount(
 export async function aztecConnect(
   user: AztecSdkUser,
   userSigner: Signer,
-  bridgeAddress: string,
+  bridgeId: number,
   inputAssetAAmount: bigint,
   inputAssetASymbol: string,
   outputAssetASymbol: string,
@@ -143,7 +143,6 @@ export async function aztecConnect(
   sdk: AztecSdk
 ): Promise<TxId> {
   // Initiate bridge call data parameters
-  const bridgeAddressId = sdk.getBridgeAddressId(EthAddress.fromString(bridgeAddress));
   const inputAssetIdA = sdk.getAssetIdBySymbol(inputAssetASymbol.toUpperCase());
   const outputAssetIdA = sdk.getAssetIdBySymbol(outputAssetASymbol.toUpperCase());
   let inputAssetIdB: number | undefined;
@@ -160,7 +159,7 @@ export async function aztecConnect(
   }
 
   const bridgeCallData = new BridgeCallData(
-    bridgeAddressId,
+    bridgeId,
     inputAssetIdA,
     outputAssetIdA,
     inputAssetIdB,

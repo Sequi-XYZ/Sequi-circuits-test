@@ -1,6 +1,7 @@
 import "./App.css";
-import { ethers } from "ethers";
+import { randomBytes } from "crypto";
 import { useEffect, useState } from "react";
+import { ethers } from "ethers";
 import {
   AztecSdk,
   createAztecSdk,
@@ -12,12 +13,11 @@ import {
   SchnorrSigner,
   EthAddress,
   TxSettlementTime,
+  TxId,
 } from "@aztec/sdk";
 
-import { randomBytes } from "crypto";
-
 import { depositEthToAztec, registerAccount, aztecConnect } from "./utils";
-import { useBridgeData } from "./bridge-data";
+import { fetchBridgeData } from "./bridge-data";
 
 declare var window: any;
 
@@ -38,12 +38,7 @@ const App = () => {
   >(undefined);
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState(0);
-
-  const bridges = useBridgeData();
-  useEffect(() => {
-    if (bridges) console.log("Known bridges:", bridges);
-    else console.log("Loading bridge data..");
-  }, [bridges]);
+  const [txId, setTxId] = useState<TxId | null>(null);
 
   // Metamask Check
   useEffect(() => {
@@ -55,6 +50,8 @@ const App = () => {
 
   async function connect() {
     if (window.ethereum) {
+      setIniting(true); // Start init status
+
       // Get Metamask provider
       // TODO: Show error if Metamask is not on Aztec Testnet
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -62,12 +59,11 @@ const App = () => {
 
       // Get Metamask ethAccount
       await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = EthAddress.fromString(await signer.getAddress());
-      setEthAccount(address);
+      const mmSigner = provider.getSigner();
+      const mmAddress = EthAddress.fromString(await mmSigner.getAddress());
+      setEthAccount(mmAddress);
 
       // Initialize SDK
-      setIniting(true);
       const sdk = await createAztecSdk(ethereumProvider, {
         serverUrl: "https://api.aztec.network/aztec-connect-testnet/falafel", // Testnet
         pollInterval: 1000,
@@ -79,23 +75,28 @@ const App = () => {
       await sdk.run();
       console.log("Aztec SDK initialized:", sdk);
       setSdk(sdk);
-      setIniting(false);
 
       // Generate user's account keypair
-      const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
-        address
+      const { publicKey: accPubKey, privateKey: accPriKey } = await sdk.generateAccountKeyPair(
+        mmAddress
       );
-      console.log("privacy key", privateKey);
-      console.log("public key", publicKey.toString());
-      setAccountPrivateKey(privateKey);
-      setAccountPublicKey(publicKey);
+      console.log("Privacy Key:", accPriKey);
+      console.log("Public Key:", accPubKey.toString());
+      setAccountPrivateKey(accPriKey);
+      setAccountPublicKey(accPubKey);
 
       // Get or generate user's Aztec account
-      let account0 = (await sdk.userExists(publicKey))
-        ? await sdk.getUser(publicKey)
-        : await sdk.addUser(privateKey);
+      let account0 = (await sdk.userExists(accPubKey)) ? await sdk.getUser(accPubKey) : await sdk.addUser(accPriKey);
       setAccount0(account0);
-      if (await sdk.isAccountRegistered(publicKey)) setUserExists(true);
+      if (await sdk.isAccountRegistered(accPubKey)) setUserExists(true);
+
+      // Generate spending key & signer
+      const { privateKey: spePriKey } = await sdk.generateSpendingKeyPair(mmAddress);
+      const schSigner = await sdk?.createSchnorrSigner(spePriKey);
+      console.log("Signer:", schSigner);
+      setSpendingSigner(schSigner);
+
+      setIniting(false); // End init status
     }
   }
 
@@ -103,80 +104,84 @@ const App = () => {
     // Wait for the SDK to read & decrypt notes to get the latest balances
     await account0!.awaitSynchronised();
     console.log(
-      "zkETH balance",
+      "Balance: zkETH -",
       sdk!.fromBaseUnits(
-        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("ETH"))
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("eth"))
+      ),
+      ", wstETH -",
+      sdk!.fromBaseUnits(
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("wsteth"))
       )
     );
   }
 
-  async function getSpendingKey() {
-    const { privateKey } = await sdk!.generateSpendingKeyPair(ethAccount!);
-    const signer = await sdk?.createSchnorrSigner(privateKey);
-    console.log("signer added", signer);
-    setSpendingSigner(signer);
-  }
-
   async function registerNewAccount() {
-    const depositTokenQuantity: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
-    const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
-    let recoverPublicKey = recoverySigner.getPublicKey();
-    let txId = await registerAccount(
-      accountPublicKey!,
-      alias,
-      accountPrivateKey!,
-      spendingSigner!.getPublicKey(),
-      recoverPublicKey,
-      EthAddress.ZERO,
-      depositTokenQuantity,
-      TxSettlementTime.NEXT_ROLLUP,
-      ethAccount!,
-      sdk!
-    );
-    console.log("registration txId", txId);
-    console.log(
-      "lookup tx on explorer",
-      `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
-    );
+    try {
+      const depositTokenQuantity: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
+      const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
+      let recoverPublicKey = recoverySigner.getPublicKey();
 
-    // TODO: Reject when deposit amount is <0.01ETH?
+      let txId = await registerAccount(
+        accountPublicKey!,
+        alias,
+        accountPrivateKey!,
+        spendingSigner!.getPublicKey(),
+        recoverPublicKey,
+        EthAddress.ZERO,
+        depositTokenQuantity,
+        TxSettlementTime.NEXT_ROLLUP,
+        ethAccount!,
+        sdk!
+      );
+
+      console.log("Registration TXID:", txId);
+      console.log(
+        "View TX on Explorer:",
+        `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
+      );
+      setTxId(txId);
+    } catch (e) {
+      console.log(e); // e.g. Reject TX
+    }
   }
 
   async function depositEth() {
-    const depositTokenQuantity: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
+    try {
+      const depositTokenQuantity: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
 
-    let txId = await depositEthToAztec(
-      ethAccount!,
-      accountPublicKey!,
-      depositTokenQuantity,
-      TxSettlementTime.NEXT_ROLLUP,
-      sdk!
-    );
+      let txId = await depositEthToAztec(
+        ethAccount!,
+        accountPublicKey!,
+        depositTokenQuantity,
+        TxSettlementTime.NEXT_ROLLUP,
+        sdk!
+      );
 
-    console.log("deposit txId", txId);
-    console.log(
-      "lookup tx on explorer",
-      `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
-    );
-
-    // TODO: Catch error when depositing 0 ETH.
+      console.log("Deposit TXID:", txId);
+      console.log(
+        "View TX on Explorer:",
+        `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
+      );
+      setTxId(txId);
+    } catch (e) {
+      console.log(e); // e.g. depositTokenQuantity = 0
+    }
   }
 
   async function bridgeCrvLido() {
-    const fromAmount: bigint = ethers.utils
-      .parseEther(amount.toString())
-      .toBigInt();
-    // TODO: Catch error when fromAmount > user's available amount.
+    try {
+      const fromAmount: bigint = ethers.utils
+        .parseEther(amount.toString())
+        .toBigInt();
 
-    if (account0 && spendingSigner && sdk) {
       let txId = await aztecConnect(
-        account0,
-        spendingSigner,
-        "0x7E5A38e50F3f03045B7a900460C0579b57cc457A", // Testnet CurveStEthBridge
+        account0!,
+        spendingSigner!,
+        6, // Testnet bridge id of CurveStEthBridge
         fromAmount,
         "ETH",
         "WSTETH",
@@ -184,14 +189,23 @@ const App = () => {
         undefined,
         1e18, // Min acceptable amount of stETH per ETH
         TxSettlementTime.NEXT_ROLLUP,
-        sdk
+        sdk!
       );
-      console.log("Bridge TXID: ", txId);
+
+      console.log("Bridge TXID:", txId);
       console.log(
-        "Lookup TX on Explorer: ",
+        "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
+      setTxId(txId);
+    } catch (e) {
+      console.log(e); // e.g. fromAmount > user's balance
     }
+  }
+
+  async function logBridges() {
+    const bridges = await fetchBridgeData();
+    console.log("Known bridges on Testnet:", bridges);
   }
 
   return (
@@ -199,11 +213,7 @@ const App = () => {
       {hasMetamask ? (
         sdk ? (
           <div>
-            {userExists
-              ? "Welcome back!"
-              : // TODO: Greet user by alias.
-                // TODO: Display available balance.
-                ""}
+            {userExists ? <div>Welcome back!</div> : ""}
             {spendingSigner && !userExists ? (
               <form>
                 <label>
@@ -215,13 +225,6 @@ const App = () => {
                   />
                 </label>
               </form>
-            ) : (
-              ""
-            )}
-            {!spendingSigner && account0 ? (
-              <button onClick={() => getSpendingKey()}>
-                Generate Spending Key
-              </button>
             ) : (
               ""
             )}
@@ -265,7 +268,9 @@ const App = () => {
             ) : (
               ""
             )}
+            <button onClick={() => logBridges()}>Log Bridges</button>
             <button onClick={() => console.log("sdk", sdk)}>Log SDK</button>
+            {txId ? <div>Last TX: {txId.toString()} <a href={`https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`}>(View on Explorer)</a></div> : ""}
           </div>
         ) : (
           <button onClick={() => connect()}>Connect Metamask</button>
@@ -274,7 +279,7 @@ const App = () => {
         // TODO: Fix rendering of this. Not rendered, reason unknown.
         "Metamask is not detected. Please make sure it is installed and enabled."
       )}
-      {initing ? "Initializing Aztec SDK..." : ""}
+      {initing ? <div>Initializing...</div> : ""}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import {
 } from "@aztec/bridge-clients/client-dest/src/client/aztec/data-provider/DataProvider";
 import { EthAddress, JsonRpcProvider } from "@aztec/sdk";
 
-async function fetchBridgeData() {
+export async function fetchBridgeData() {
   const provider = new JsonRpcProvider(
     "https://mainnet-fork.aztec.network:8545"
   );
