@@ -17,7 +17,7 @@ import {
 import { randomBytes } from "crypto";
 
 import { depositEthToAztec, registerAccount, aztecConnect } from "./utils";
-import { useBridgeData } from "./bridge-data";
+import { fetchBridgeData } from "./bridge-data";
 
 declare var window: any;
 
@@ -38,12 +38,6 @@ const App = () => {
   >(undefined);
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState(0);
-
-  const bridges = useBridgeData();
-  useEffect(() => {
-    if (bridges) console.log("Known bridges:", bridges);
-    else console.log("Loading bridge data..");
-  }, [bridges]);
 
   // Metamask Check
   useEffect(() => {
@@ -198,6 +192,11 @@ const App = () => {
     }
   }
 
+  async function logBridges() {
+    const bridges = await fetchBridgeData();
+    console.log("Known bridges on Testnet:", bridges);
+  }
+
   return (
     <div className="App">
       {hasMetamask ? (
@@ -269,6 +268,7 @@ const App = () => {
             ) : (
               ""
             )}
+            <button onClick={() => logBridges()}>Log Bridges</button>
             <button onClick={() => console.log("sdk", sdk)}>Log SDK</button>
           </div>
         ) : (
