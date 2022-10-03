@@ -73,7 +73,6 @@ const App = () => {
       await sdk.run();
       console.log("Aztec SDK initialized: ", sdk);
       setSdk(sdk);
-      setIniting(false);
 
       // Generate user's account keypair
       const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
@@ -90,6 +89,8 @@ const App = () => {
         : await sdk.addUser(privateKey);
       setAccount0(account0);
       if (await sdk.isAccountRegistered(publicKey)) setUserExists(true);
+
+      setIniting(false);
     }
   }
 
@@ -283,7 +284,7 @@ const App = () => {
         // TODO: Fix rendering of this. Not rendered, reason unknown.
         "Metamask is not detected. Please make sure it is installed and enabled."
       )}
-      {initing ? "Initializing Aztec SDK..." : ""}
+      {initing ? "Initializing..." : ""}
     </div>
   );
 };
