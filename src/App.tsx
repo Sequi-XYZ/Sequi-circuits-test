@@ -1,6 +1,7 @@
 import "./App.css";
-import { ethers } from "ethers";
+import { randomBytes } from "crypto";
 import { useEffect, useState } from "react";
+import { ethers } from "ethers";
 import {
   AztecSdk,
   createAztecSdk,
@@ -14,8 +15,6 @@ import {
   TxSettlementTime,
   TxId,
 } from "@aztec/sdk";
-
-import { randomBytes } from "crypto";
 
 import { depositEthToAztec, registerAccount, aztecConnect } from "./utils";
 import { fetchBridgeData } from "./bridge-data";
