@@ -214,11 +214,7 @@ const App = () => {
       {hasMetamask ? (
         sdk ? (
           <div>
-            {userExists
-              ? <div>Welcome back!</div>
-              : // TODO: Greet user by alias.
-              // TODO: Display available balance.
-              ""}
+            {userExists ? <div>Welcome back!</div> : ""}
             {spendingSigner && !userExists ? (
               <form>
                 <label>
