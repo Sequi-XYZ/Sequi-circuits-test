@@ -12,6 +12,7 @@ import {
   SchnorrSigner,
   EthAddress,
   TxSettlementTime,
+  TxId,
 } from "@aztec/sdk";
 
 import { randomBytes } from "crypto";
@@ -38,6 +39,7 @@ const App = () => {
   >(undefined);
   const [alias, setAlias] = useState("");
   const [amount, setAmount] = useState(0);
+  const [txId, setTxId] = useState<TxId | null>(null);
 
   // Metamask Check
   useEffect(() => {
@@ -121,6 +123,7 @@ const App = () => {
         .toBigInt();
       const recoverySigner = await sdk!.createSchnorrSigner(randomBytes(32));
       let recoverPublicKey = recoverySigner.getPublicKey();
+
       let txId = await registerAccount(
         accountPublicKey!,
         alias,
@@ -133,11 +136,13 @@ const App = () => {
         ethAccount!,
         sdk!
       );
+
       console.log("Registration TXID:", txId);
       console.log(
         "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
+      setTxId(txId);
     } catch (e) {
       console.log(e); // e.g. Reject TX
     }
@@ -162,6 +167,7 @@ const App = () => {
         "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
+      setTxId(txId);
     } catch (e) {
       console.log(e); // e.g. depositTokenQuantity = 0
     }
@@ -186,11 +192,13 @@ const App = () => {
         TxSettlementTime.NEXT_ROLLUP,
         sdk!
       );
+
       console.log("Bridge TXID:", txId);
       console.log(
         "View TX on Explorer:",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
+      setTxId(txId);
     } catch (e) {
       console.log(e); // e.g. fromAmount > user's balance
     }
@@ -207,7 +215,7 @@ const App = () => {
         sdk ? (
           <div>
             {userExists
-              ? "Welcome back! "
+              ? <div>Welcome back!</div>
               : // TODO: Greet user by alias.
               // TODO: Display available balance.
               ""}
@@ -267,6 +275,7 @@ const App = () => {
             )}
             <button onClick={() => logBridges()}>Log Bridges</button>
             <button onClick={() => console.log("sdk", sdk)}>Log SDK</button>
+            {txId ? <div>Last TX: {txId.toString()} <a href={`https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`}>(View on Explorer)</a></div> : ""}
           </div>
         ) : (
           <button onClick={() => connect()}>Connect Metamask</button>
@@ -275,7 +284,7 @@ const App = () => {
         // TODO: Fix rendering of this. Not rendered, reason unknown.
         "Metamask is not detected. Please make sure it is installed and enabled."
       )}
-      {initing ? " Initializing..." : ""}
+      {initing ? <div>Initializing...</div> : ""}
     </div>
   );
 };
