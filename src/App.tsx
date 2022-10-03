@@ -49,6 +49,8 @@ const App = () => {
 
   async function connect() {
     if (window.ethereum) {
+      setIniting(true); // Start init status
+
       // Get Metamask provider
       // TODO: Show error if Metamask is not on Aztec Testnet
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -56,12 +58,11 @@ const App = () => {
 
       // Get Metamask ethAccount
       await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = EthAddress.fromString(await signer.getAddress());
-      setEthAccount(address);
+      const mmSigner = provider.getSigner();
+      const mmAddress = EthAddress.fromString(await mmSigner.getAddress());
+      setEthAccount(mmAddress);
 
       // Initialize SDK
-      setIniting(true);
       const sdk = await createAztecSdk(ethereumProvider, {
         serverUrl: "https://api.aztec.network/aztec-connect-testnet/falafel", // Testnet
         pollInterval: 1000,
@@ -75,22 +76,26 @@ const App = () => {
       setSdk(sdk);
 
       // Generate user's account keypair
-      const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
-        address
+      const { publicKey: accPubKey, privateKey: accPriKey } = await sdk.generateAccountKeyPair(
+        mmAddress
       );
-      console.log("Privacy Key:", privateKey);
-      console.log("Public Key:", publicKey.toString());
-      setAccountPrivateKey(privateKey);
-      setAccountPublicKey(publicKey);
+      console.log("Privacy Key:", accPriKey);
+      console.log("Public Key:", accPubKey.toString());
+      setAccountPrivateKey(accPriKey);
+      setAccountPublicKey(accPubKey);
 
       // Get or generate user's Aztec account
-      let account0 = (await sdk.userExists(publicKey))
-        ? await sdk.getUser(publicKey)
-        : await sdk.addUser(privateKey);
+      let account0 = (await sdk.userExists(accPubKey)) ? await sdk.getUser(accPubKey) : await sdk.addUser(accPriKey);
       setAccount0(account0);
-      if (await sdk.isAccountRegistered(publicKey)) setUserExists(true);
+      if (await sdk.isAccountRegistered(accPubKey)) setUserExists(true);
 
-      setIniting(false);
+      // Generate spending key & signer
+      const { privateKey: spePriKey } = await sdk.generateSpendingKeyPair(mmAddress);
+      const schSigner = await sdk?.createSchnorrSigner(spePriKey);
+      console.log("Signer:", schSigner);
+      setSpendingSigner(schSigner);
+
+      setIniting(false); // End init status
     }
   }
 
@@ -107,13 +112,6 @@ const App = () => {
         await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("wsteth"))
       )
     );
-  }
-
-  async function getSpendingKey() {
-    const { privateKey } = await sdk!.generateSpendingKeyPair(ethAccount!);
-    const signer = await sdk?.createSchnorrSigner(privateKey);
-    console.log("Signer:", signer);
-    setSpendingSigner(signer);
   }
 
   async function registerNewAccount() {
@@ -224,13 +222,6 @@ const App = () => {
                   />
                 </label>
               </form>
-            ) : (
-              ""
-            )}
-            {!spendingSigner && account0 ? (
-              <button onClick={() => getSpendingKey()}>
-                Generate Spending Key
-              </button>
             ) : (
               ""
             )}
