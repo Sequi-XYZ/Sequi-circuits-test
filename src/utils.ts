@@ -83,7 +83,7 @@ export async function depositEthToAztec(
   );
   await tokenDepositController.createProof();
   await tokenDepositController.sign();
-  console.log((await tokenDepositController.getPendingFunds()))
+  await tokenDepositController.getPendingFunds();
   if ((await tokenDepositController.getPendingFunds()) < tokenQuantity) {
     await tokenDepositController.depositFundsToContract();
     await tokenDepositController.awaitDepositFundsToContract();

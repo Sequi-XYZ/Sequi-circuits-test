@@ -71,7 +71,7 @@ const App = () => {
         minConfirmation: 1, // ETH block confirmations
       });
       await sdk.run();
-      console.log("Aztec SDK initialized:", sdk);
+      console.log("Aztec SDK initialized: ", sdk);
       setSdk(sdk);
       setIniting(false);
 
@@ -79,8 +79,8 @@ const App = () => {
       const { publicKey, privateKey } = await sdk.generateAccountKeyPair(
         address
       );
-      console.log("privacy key", privateKey);
-      console.log("public key", publicKey.toString());
+      console.log("Privacy Key: ", privateKey);
+      console.log("Public Key: ", publicKey.toString());
       setAccountPrivateKey(privateKey);
       setAccountPublicKey(publicKey);
 
@@ -111,7 +111,7 @@ const App = () => {
   async function getSpendingKey() {
     const { privateKey } = await sdk!.generateSpendingKeyPair(ethAccount!);
     const signer = await sdk?.createSchnorrSigner(privateKey);
-    console.log("signer added", signer);
+    console.log("Signer: ", signer);
     setSpendingSigner(signer);
   }
 
@@ -134,9 +134,9 @@ const App = () => {
         ethAccount!,
         sdk!
       );
-      console.log("registration txId", txId);
+      console.log("Registration TXID: ", txId);
       console.log(
-        "lookup tx on explorer",
+        "View TX on Explorer: ",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
@@ -158,9 +158,9 @@ const App = () => {
         sdk!
       );
 
-      console.log("deposit txId", txId);
+      console.log("Deposit TXID: ", txId);
       console.log(
-        "lookup tx on explorer",
+        "View TX on Explorer: ",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
@@ -189,7 +189,7 @@ const App = () => {
       );
       console.log("Bridge TXID: ", txId);
       console.log(
-        "Lookup TX on Explorer: ",
+        "View TX on Explorer: ",
         `https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`
       );
     } catch (e) {
