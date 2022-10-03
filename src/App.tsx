@@ -77,21 +77,24 @@ const App = () => {
       setSdk(sdk);
 
       // Generate user's account keypair
-      const { publicKey: accPubKey, privateKey: accPriKey } = await sdk.generateAccountKeyPair(
-        mmAddress
-      );
+      const { publicKey: accPubKey, privateKey: accPriKey } =
+        await sdk.generateAccountKeyPair(mmAddress);
       console.log("Privacy Key:", accPriKey);
       console.log("Public Key:", accPubKey.toString());
       setAccountPrivateKey(accPriKey);
       setAccountPublicKey(accPubKey);
 
       // Get or generate user's Aztec account
-      let account0 = (await sdk.userExists(accPubKey)) ? await sdk.getUser(accPubKey) : await sdk.addUser(accPriKey);
+      let account0 = (await sdk.userExists(accPubKey))
+        ? await sdk.getUser(accPubKey)
+        : await sdk.addUser(accPriKey);
       setAccount0(account0);
       if (await sdk.isAccountRegistered(accPubKey)) setUserExists(true);
 
       // Generate spending key & signer
-      const { privateKey: spePriKey } = await sdk.generateSpendingKeyPair(mmAddress);
+      const { privateKey: spePriKey } = await sdk.generateSpendingKeyPair(
+        mmAddress
+      );
       const schSigner = await sdk?.createSchnorrSigner(spePriKey);
       console.log("Signer:", schSigner);
       setSpendingSigner(schSigner);
@@ -270,7 +273,18 @@ const App = () => {
             )}
             <button onClick={() => logBridges()}>Log Bridges</button>
             <button onClick={() => console.log("sdk", sdk)}>Log SDK</button>
-            {txId ? <div>Last TX: {txId.toString()} <a href={`https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`}>(View on Explorer)</a></div> : ""}
+            {txId ? (
+              <div>
+                Last TX: {txId.toString()}{" "}
+                <a
+                  href={`https://aztec-connect-testnet-explorer.aztec.network/tx/${txId.toString()}`}
+                >
+                  (View on Explorer)
+                </a>
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         ) : (
           <button onClick={() => connect()}>Connect Metamask</button>
