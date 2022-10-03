@@ -176,7 +176,7 @@ const App = () => {
       let txId = await aztecConnect(
         account0,
         spendingSigner,
-        "0x7E5A38e50F3f03045B7a900460C0579b57cc457A", // Testnet CurveStEthBridge
+        6, // Testnet bridge id of CurveStEthBridge
         fromAmount,
         "ETH",
         "WSTETH",
@@ -202,8 +202,8 @@ const App = () => {
             {userExists
               ? "Welcome back!"
               : // TODO: Greet user by alias.
-                // TODO: Display available balance.
-                ""}
+              // TODO: Display available balance.
+              ""}
             {spendingSigner && !userExists ? (
               <form>
                 <label>
