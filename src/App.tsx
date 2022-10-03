@@ -103,9 +103,13 @@ const App = () => {
     // Wait for the SDK to read & decrypt notes to get the latest balances
     await account0!.awaitSynchronised();
     console.log(
-      "zkETH balance",
+      "Balance: zkETH -",
       sdk!.fromBaseUnits(
-        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("ETH"))
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("eth"))
+      ),
+      ", wstETH -",
+      sdk!.fromBaseUnits(
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("wsteth"))
       )
     );
   }
