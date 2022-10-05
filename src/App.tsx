@@ -75,22 +75,25 @@ const App = () => {
       console.log("Aztec SDK initialized:", sdk);
       setSdk(sdk);
 
-      // Generate user's account keypair
+      // Generate user's privacy keypair
+      // The privacy keypair (also known as account keypair) is used for en-/de-crypting values of the user's spendable funds (i.e. balance) on Aztec
+      // It can but is not typically used for receiving/spending funds, as the user should be able to share viewing access to his/her Aztec account via sharing his/her privacy private key
       const { publicKey: accPubKey, privateKey: accPriKey } =
         await sdk.generateAccountKeyPair(mmAddress);
       console.log("Privacy Key:", accPriKey);
       console.log("Public Key:", accPubKey.toString());
       setAccountPrivateKey(accPriKey);
       setAccountPublicKey(accPubKey);
+      if (await sdk.isAccountRegistered(accPubKey)) setUserExists(true);
 
-      // Get or generate user's Aztec account
+      // Get or generate Aztec SDK local user
       let account0 = (await sdk.userExists(accPubKey))
         ? await sdk.getUser(accPubKey)
         : await sdk.addUser(accPriKey);
       setAccount0(account0);
-      if (await sdk.isAccountRegistered(accPubKey)) setUserExists(true);
 
-      // Generate spending key & signer
+      // Generate user's spending key & signer
+      // The spending keypair is used for receiving/spending funds on Aztec
       const { privateKey: spePriKey } = await sdk.generateSpendingKeyPair(
         mmAddress
       );
@@ -117,6 +120,9 @@ const App = () => {
     );
   }
 
+  // Registering on Aztec enables the use of intuitive aliases for fund transfers
+  // It registers an human-readable alias with the user's privacy & spending keypairs
+  // All future funds transferred to the alias would be viewable with the privacy key and spendable with the spending key respectively
   async function registerNewAccount() {
     try {
       const depositTokenQuantity: bigint = ethers.utils
