@@ -4,6 +4,8 @@ This is a sample Aztec frontend powered by [Aztec SDK](https://github.com/AztecP
 
 By default, the project works on the Aztec Testnet.
 
+You can try it out on: https://aztec-frontend-boilerplate.netlify.app/
+
 ## Functions
 
 A user with Metamask may interact with the Aztec Network using the project. Its functions cover:
