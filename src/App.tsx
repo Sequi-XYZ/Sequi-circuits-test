@@ -105,20 +105,7 @@ const App = () => {
     }
   }
 
-  async function logBalance() {
-    // Wait for the SDK to read & decrypt notes to get the latest balances
-    await account0!.awaitSynchronised();
-    console.log(
-      "Balance: zkETH -",
-      sdk!.fromBaseUnits(
-        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("eth"))
-      ),
-      ", wstETH -",
-      sdk!.fromBaseUnits(
-        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("wsteth"))
-      )
-    );
-  }
+
 
   // Registering on Aztec enables the use of intuitive aliases for fund transfers
   // It registers an human-readable alias with the user's privacy & spending keypairs
@@ -208,6 +195,21 @@ const App = () => {
     }
   }
 
+  async function logBalance() {
+    // Wait for the SDK to read & decrypt notes to get the latest balances
+    await account0!.awaitSynchronised();
+    console.log(
+      "Balance: zkETH -",
+      sdk!.fromBaseUnits(
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("eth"))
+      ),
+      ", wstETH -",
+      sdk!.fromBaseUnits(
+        await sdk!.getBalance(account0!.id, sdk!.getAssetIdBySymbol("wsteth"))
+      )
+    );
+  }
+  
   async function logBridges() {
     const bridges = await fetchBridgeData();
     console.log("Known bridges on Testnet:", bridges);
