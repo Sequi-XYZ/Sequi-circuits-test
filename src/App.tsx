@@ -105,8 +105,6 @@ const App = () => {
     }
   }
 
-
-
   // Registering on Aztec enables the use of intuitive aliases for fund transfers
   // It registers an human-readable alias with the user's privacy & spending keypairs
   // All future funds transferred to the alias would be viewable with the privacy key and spendable with the spending key respectively
