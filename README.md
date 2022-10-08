@@ -38,6 +38,10 @@ See [App.tsx](src/App.tsx) for more details.
 
 ## Commands
 
+### `yarn`
+
+Install dependencies.
+
 ### `yarn start`
 
 Runs the app in development mode.
