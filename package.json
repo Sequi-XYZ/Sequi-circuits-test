@@ -1,10 +1,10 @@
 {
-  "name": "cra4-aztec-sdk-starter",
+  "name": "noir-web-starter",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@aztec/sdk": "^2.1.45",
-    "@aztec/bridge-clients": "^0.1.62",
+    "@aztec/sdk": "2.1.45",
+    "@aztec/bridge-clients": "^0.1.63",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -12,7 +12,7 @@
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "ethers": "^5.7.1",
+    "noir-js-bogota": "1.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "4.0.3",
@@ -21,11 +21,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false && react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "postinstall": "yarn copy:sdk-resources",
-    "copy:sdk-resources": "cp ./node_modules/@aztec/barretenberg/wasm/barretenberg.wasm ./public/ && cp ./node_modules/@aztec/barretenberg/worker.js ./public/"
+    "postinstall": "node ./post-install.js"
   },
   "eslintConfig": {
     "extends": [

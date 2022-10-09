@@ -11,6 +11,40 @@ import {
   Signer,
   AztecSdkUser,
 } from "@aztec/sdk";
+import { TreeNote } from "@aztec/barretenberg/note_algorithms";
+import { readFileSync } from "fs";
+
+export class Note {
+  constructor(
+    public treeNote: TreeNote,
+    public commitment: Buffer,
+    public nullifier: Buffer,
+    public allowChain: boolean,
+    public nullified: boolean,
+    public index?: number,
+    public hashPath?: Buffer
+  ) {}
+
+  get assetId() {
+    return this.treeNote.assetId;
+  }
+
+  get value() {
+    return this.treeNote.value;
+  }
+
+  get owner() {
+    return this.treeNote.ownerPubKey;
+  }
+
+  get ownerAccountRequired() {
+    return this.treeNote.accountRequired;
+  }
+
+  get pending() {
+    return this.index === undefined;
+  }
+}
 
 const privateKeyMessage = Buffer.from(
   `Sign this message to generate your Aztec Privacy Key. This key lets the application decrypt your balance on Aztec.\n\nIMPORTANT: Only sign this message if you trust the application.`
@@ -47,6 +81,20 @@ export async function createArbitraryDeterministicKey(
   const privateKey = await createSigningKey(provider, messageToSign);
   const publicKey = await sdk.derivePublicKey(privateKey);
   return { privateKey, publicKey };
+}
+
+export async function getNote(
+  userId: GrumpkinAddress,
+  assetId: number,
+  sdk: AztecSdk
+) {
+  const userState = (sdk as any).core.getUserState(userId);
+
+  const notes = await userState.db.getNotes(userId);
+  const note = (notes as Note[]).find((n) => n.assetId === assetId);
+  if (!note || !note.hashPath) throw new Error("note not found!");
+
+  return note;
 }
 
 const createSigningKey = async (
@@ -115,7 +163,7 @@ export async function registerAccount(
     undefined, // Optional recovery key
     deposit, // Optional, can be of zero value
     txFee,
-    depositor,
+    depositor
     // Optional Ethereum Provider
   );
 
@@ -163,11 +211,14 @@ export async function aztecConnect(
     outputAssetIdA,
     inputAssetIdB,
     outputAssetIdB,
-    auxData,
+    auxData
   );
 
   // Initiate controller parameters
-  const assetValue: AssetValue = { assetId: inputAssetIdA, value: inputAssetAAmount };
+  const assetValue: AssetValue = {
+    assetId: inputAssetIdA,
+    value: inputAssetAAmount,
+  };
   const fee = (await sdk.getDefiFees(bridgeCallData))[settlementTime];
 
   const controller = sdk.createDefiController(
@@ -180,4 +231,10 @@ export async function aztecConnect(
 
   await controller.createProof();
   return await controller.send();
+}
+
+export function path_to_uint8array(path: string) {
+  let buffer = readFileSync(path);
+  
+  return new Uint8Array(buffer);
 }
